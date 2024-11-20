@@ -1,5 +1,5 @@
 # DSC 291 Final Project
-
+Hanchang Cai, Chris Xu
 ## Proposal
 Integrated analysis of scRNA-seq and scATAC-seq data for HCC patients. The overlaps of Differentially Accessible Regions (DARs) and Differentially Expressed Genes (DEGs) will further extend the interpretations from traditional scRNA-seq DEGs by adding 
 chromatin accessibility information. This can reveal cell-type specific enhancer-gene relationships, which can lead to novel therapeutic targets. 
@@ -29,3 +29,5 @@ scATAC-seq: GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227
   * Select the cell-types matching the selection from scRNA-seq Processing.
   * Link peaks to gene.
 * Correlation analysis of expression matricies for DARs and DEGs from scRNA-Seq and scATAC-seq to identify enhancers.
+
+Repo Link: https://github.com/chrisxuuu/dsc291final
