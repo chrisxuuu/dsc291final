@@ -50,31 +50,54 @@ knitr::kable(marker_quality)
 ```{r}
 filtered_markers <- panglao %>%
   filter(
-    # Keep genes present in both human and mouse for evolutionary conservation
-    species == "Mm Hs",
+    species %in% c("Mm Hs", "Hs"),
     (specificity_human > 0.01 | specificity_mouse > 0.01),
     ubiquitousness_index < 0.05,
     (sensitivity_human > 0.1 | sensitivity_mouse > 0.1),
-    !is.na(canonical_marker)
-    # We don't restrict organs.
+    !is.na(canonical_marker) # We don't restrict organs.
   )
-unique_markers <- filtered_markers %>%
-  # Create a quality score combining specificity and sensitivity
-  mutate(
-    quality_score = (specificity_human + specificity_mouse +
-      sensitivity_human + sensitivity_mouse) / 4 *
-      # Give additional weight to canonical markers
-      if_else(canonical_marker == 1, 1.5, 1)
-  ) %>%
-  # Group by gene and select the best cell type
-  group_by(official_gene_symbol) %>%
-  slice_max(order_by = quality_score, n = 1, with_ties = FALSE) %>%
-  ungroup() %>%
-  as.data.table()
+# Function to select a gene column and get unique rows.
+# Selection by "Quality Score".
+select_unique_genes <- function(markers, gene_col_name) {
+  markers %>%
+    mutate(
+      quality_score = (specificity_human + specificity_mouse +
+        sensitivity_human + sensitivity_mouse) / 4 *
+        if_else(canonical_marker == 1, 1.5, 1)
+    ) %>%
+    group_by(across(all_of(gene_col_name))) %>%
+    slice_max(order_by = quality_score, n = 1, with_ties = FALSE) %>%
+    ungroup() %>%
+    as.data.table()
+}
+unique_markers <- select_unique_genes(filtered_markers, "official_gene_symbol")
+```
 
-# The Matching
+We will also consider matching by nicknames if we cannot find official gene names.
+```{r}
+# Expand Nicknames to be on seperate rows.
+expand_nicknames <- function(dt) {
+  result <- copy(dt)
+  result <- result[, .(
+    nickname = unlist(strsplit(nicknames, "\\|"))
+  ), by = .(
+    species, official_gene_symbol, cell_type, ubiquitousness_index,
+    product_description, gene_type, canonical_marker, germ_layer,
+    organ, sensitivity_human, sensitivity_mouse, specificity_human,
+    specificity_mouse, quality_score
+  )]
+  return(result)
+}
+unique_nickname_marker <- expand_nicknames(unique_markers)
+unique_nickname_marker <- select_unique_genes(unique_nickname_marker, "nickname") %>%
+  filter(!is.na(nickname))
+```
+
+The Matching:
+```{r}
 all_markers <- fread("scrna_all_markers.txt", header = TRUE)
 annotated_markers <- all_markers %>%
+  # First try to match with official gene symbols
   left_join(
     unique_markers %>%
       select(
@@ -82,8 +105,27 @@ annotated_markers <- all_markers %>%
         specificity_human, specificity_mouse,
         sensitivity_human, sensitivity_mouse
       ),
-    by = c("gene" = "official_gene_symbol") # We only consider official names.
-  )
+    by = c("gene" = "official_gene_symbol")
+  ) %>%
+  # For rows where we didn't find a match (where cell_type is NA),
+  # try to match with nicknames
+  left_join(
+    unique_nickname_marker %>%
+      select(
+        nickname, cell_type,
+        specificity_human, specificity_mouse,
+        sensitivity_human, sensitivity_mouse
+      ),
+    by = c("gene" = "nickname")
+  ) %>%
+  mutate(
+    cell_type = coalesce(cell_type.x, cell_type.y),
+    specificity_human = coalesce(specificity_human.x, specificity_human.y),
+    specificity_mouse = coalesce(specificity_mouse.x, specificity_mouse.y),
+    sensitivity_human = coalesce(sensitivity_human.x, sensitivity_human.y),
+    sensitivity_mouse = coalesce(sensitivity_mouse.x, sensitivity_mouse.y)
+  ) %>%
+  select(-ends_with(".x"), -ends_with(".y"))
 ```
 
 Check Matching Summary:
