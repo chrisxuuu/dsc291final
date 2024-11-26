@@ -141,3 +141,46 @@ write.table(annotated_markers, "scrna_annotated_markers.txt",
 )
 ```
 
+Cell Type Cluster Analysis:
+```{r}
+analyze_cluster_markers <- function(data) {
+  cell_type_scores <- data %>%
+    filter(!is.na(cell_type)) %>%
+    group_by(cell_type) %>%
+    summarise(
+      n_markers = n(),
+      avg_expression_score = mean((pct.1 - pct.2) * avg_log2FC),
+      avg_specificity = mean(as.numeric(specificity_human), na.rm = TRUE),
+      avg_sensitivity = mean(as.numeric(sensitivity_human), na.rm = TRUE),
+      markers = paste(gene, collapse = ", "),
+      combined_score = mean(
+        c(
+          mean((pct.1 - pct.2) * avg_log2FC),
+          mean(as.numeric(specificity_human), na.rm = TRUE) * 2,
+          mean(as.numeric(sensitivity_human), na.rm = TRUE)
+        ),
+        na.rm = TRUE
+      )
+    ) %>%
+    arrange(desc(combined_score))
+  return(cell_type_scores)
+}
+```
+Note: the weight of the combined_score is evenly weighed between expression, specificity, and sensitivity.
+
+```{r}
+analyze_all_clusters <- function(data) {
+  clusters <- unique(data$cluster)
+  results <- list()
+  for (cluster_i in clusters) {
+    cluster_data <- data %>% filter(cluster == cluster_i)
+    results[[paste0("cluster_", cluster_i)]] <- analyze_cluster_markers(cluster_data)
+  }
+  return(results)
+}
+all_cluster_celltype <- analyze_all_clusters(annotated_markers)
+cluster_class <- lapply(1:length(all_cluster_celltype), function(i) {
+  c(i, as.character(unname(all_cluster_celltype[[i]][1, 1])))
+})
+```
+
