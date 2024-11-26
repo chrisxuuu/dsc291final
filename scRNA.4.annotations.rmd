@@ -1,0 +1,101 @@
+---
+output:
+  pdf_document:
+    number_sections: false
+    latex_engine: xelatex
+  header-includes:
+    - \usepackage{fontspec}
+    - \usepackage{unicode-math}
+---
+
+Libraries:
+```{r, message=FALSE}
+library(dplyr)
+library(dtplyr)
+library(tidyr)
+library(data.table)
+library(patchwork)
+library(ggplot2)
+DATA_DIR <- "/Users/chris/Desktop/DSC_291/Final_Project_Data"
+setwd(DATA_DIR)
+knitr::opts_knit$set(root.dir = DATA_DIR)
+```
+
+Annotations:
+```{r}
+# Use PanglaoDB for cell-type annotations for each cluster.
+panglao <- fread("PanglaoDB_markers_27_Mar_2020.tsv.gz", header = TRUE) %>%
+  rename_with(~ gsub(" ", "_", .))
+# QC for PanglaoDB
+missing_summary <- panglao %>%
+  summarise(across(everything(), ~ sum(is.na(.)))) %>%
+  gather(column, missing_count)
+marker_quality <- panglao %>%
+  group_by(cell_type) %>%
+  summarise(
+    # Number of markers per cell type
+    marker_count = n(),
+    # Average specificity (combine human and mouse)
+    avg_specificity = mean((specificity_human + specificity_mouse) / 2, na.rm = TRUE),
+    # Average sensitivity
+    avg_sensitivity = mean((sensitivity_human + sensitivity_mouse) / 2, na.rm = TRUE),
+    # Count of canonical markers
+    canonical_markers = sum(canonical_marker == 1, na.rm = TRUE)
+  )
+knitr::kable(marker_quality)
+```
+
+\newpage
+
+```{r}
+filtered_markers <- panglao %>%
+  filter(
+    # Keep genes present in both human and mouse for evolutionary conservation
+    species == "Mm Hs",
+    (specificity_human > 0.01 | specificity_mouse > 0.01),
+    ubiquitousness_index < 0.05,
+    (sensitivity_human > 0.1 | sensitivity_mouse > 0.1),
+    !is.na(canonical_marker)
+    # We don't restrict organs.
+  )
+unique_markers <- filtered_markers %>%
+  # Create a quality score combining specificity and sensitivity
+  mutate(
+    quality_score = (specificity_human + specificity_mouse +
+      sensitivity_human + sensitivity_mouse) / 4 *
+      # Give additional weight to canonical markers
+      if_else(canonical_marker == 1, 1.5, 1)
+  ) %>%
+  # Group by gene and select the best cell type
+  group_by(official_gene_symbol) %>%
+  slice_max(order_by = quality_score, n = 1, with_ties = FALSE) %>%
+  ungroup() %>%
+  as.data.table()
+
+# The Matching
+all_markers <- fread("scrna_all_markers.txt", header = TRUE)
+annotated_markers <- all_markers %>%
+  left_join(
+    unique_markers %>%
+      select(
+        official_gene_symbol, cell_type,
+        specificity_human, specificity_mouse,
+        sensitivity_human, sensitivity_mouse
+      ),
+    by = c("gene" = "official_gene_symbol") # We only consider official names.
+  )
+```
+
+Check Matching Summary:
+```{r}
+na_count <- sum(is.na(annotated_markers$cell_type))
+total_rows <- nrow(annotated_markers)
+print(paste0("Number of NAs in cell_type: ", na_count))
+print(paste0("Total number of rows: ", total_rows))
+print(paste0("Percentage of NAs: ", round(na_count / total_rows * 100, 2), "%"))
+write.table(annotated_markers, "scrna_annotated_markers.txt",
+  quote = FALSE,
+  row.names = FALSE, col.names = TRUE, sep = "\t"
+)
+```
+
