@@ -48,13 +48,14 @@ knitr::kable(marker_quality)
 \newpage
 
 ```{r}
+# PangLao Filter
 filtered_markers <- panglao %>%
   filter(
     species %in% c("Mm Hs", "Hs"),
     (specificity_human > 0.01 | specificity_mouse > 0.01),
     ubiquitousness_index < 0.05,
     (sensitivity_human > 0.1 | sensitivity_mouse > 0.1),
-    !is.na(canonical_marker) # We don't restrict organs.
+    !is.na(canonical_marker)
   )
 # Function to select a gene column and get unique rows.
 # Selection by "Quality Score".
@@ -198,7 +199,6 @@ combinedSeurat <- JoinLayers(combinedSeurat)
 combinedSeurat@meta.data$cell_type <- cluster_labels[as.character(combinedSeurat$seurat_clusters)]
 hcc_only <- subset(combinedSeurat, orig.ident == "HCC")
 hccf_only <- subset(combinedSeurat, orig.ident == "HCCF")
-# Create side-by-side plots
 p1 <- DimPlot(hcc_only,
   reduction = "umap",
   group.by = "cell_type",
@@ -213,7 +213,6 @@ p1 <- DimPlot(hcc_only,
     legend.text = element_text(size = 8),
     plot.title = element_text(hjust = 0.5)
   )
-
 p2 <- DimPlot(hccf_only,
   reduction = "umap",
   group.by = "cell_type",
@@ -249,3 +248,45 @@ p3 <- DimPlot(combinedSeurat,
 p3
 ggsave("6.seurat_cluster_plot.png", width = 400, height = 150, units = "mm")
 ```
+
+Remove T cytotoxic cells to see cleaner dimplots:
+```{r}
+hcc_only <- subset(combinedSeurat, orig.ident == "HCC" & cell_type != "T cytotoxic cells")
+hccf_only <- subset(combinedSeurat, orig.ident == "HCCF" & cell_type != "T cytotoxic cells")
+p1 <- DimPlot(hcc_only,
+  reduction = "umap",
+  group.by = "cell_type",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE
+) +
+  theme_minimal() +
+  ggtitle("HCC Cell Types") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5)
+  )
+p2 <- DimPlot(hccf_only,
+  reduction = "umap",
+  group.by = "cell_type",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE
+) +
+  theme_minimal() +
+  ggtitle("HCCF Cell Types") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5)
+  )
+
+p1 + p2
+ggsave("6.subsetted_annotated_plot.png", width = 400, height = 150, units = "mm")
+```
+
+Note that maybe the actual annotations are not super crucial. We just need to find similar cells 
+between scRNAseq and scATACseq for comparison. 
+
+Use the same annotation files for both????
