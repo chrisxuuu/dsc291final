@@ -184,3 +184,68 @@ cluster_class <- lapply(1:length(all_cluster_celltype), function(i) {
 })
 ```
 
+Annotate the PCA plot:
+```{r}
+library(Seurat)
+combinedSeurat <- readRDS("scRNA_after_umap.rds")
+cluster_labels <- sapply(cluster_class, function(x) x[2])
+names(cluster_labels) <- sapply(cluster_class, function(x) x[1])
+
+# We Need to Compute Clusters Again. Didn't save in scRNA.3.marker_genes.r
+combinedSeurat <- FindNeighbors(combinedSeurat, dims = 20)
+combinedSeurat <- FindClusters(combinedSeurat, resolution = 0.5)
+combinedSeurat <- JoinLayers(combinedSeurat)
+combinedSeurat@meta.data$cell_type <- cluster_labels[as.character(combinedSeurat$seurat_clusters)]
+hcc_only <- subset(combinedSeurat, orig.ident == "HCC")
+hccf_only <- subset(combinedSeurat, orig.ident == "HCCF")
+# Create side-by-side plots
+p1 <- DimPlot(hcc_only,
+  reduction = "umap",
+  group.by = "cell_type",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE
+) +
+  theme_minimal() +
+  ggtitle("HCC Cell Types") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5)
+  )
+
+p2 <- DimPlot(hccf_only,
+  reduction = "umap",
+  group.by = "cell_type",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE
+) +
+  theme_minimal() +
+  ggtitle("HCCF Cell Types") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5)
+  )
+
+p1 + p2
+ggsave("6.annotated_plot.png", width = 400, height = 150, units = "mm")
+
+p3 <- DimPlot(combinedSeurat,
+  reduction = "umap",
+  group.by = "seurat_clusters",
+  label = TRUE,
+  label.size = 3,
+  repel = TRUE
+) +
+  theme_minimal() +
+  ggtitle("Seurat Clusters") +
+  theme(
+    legend.position = "right",
+    legend.text = element_text(size = 8),
+    plot.title = element_text(hjust = 0.5)
+  )
+p3
+ggsave("6.seurat_cluster_plot.png", width = 400, height = 150, units = "mm")
+```
