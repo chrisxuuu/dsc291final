@@ -96,7 +96,8 @@ unique_nickname_marker <- select_unique_genes(unique_nickname_marker, "nickname"
 
 The Matching:
 ```{r}
-all_markers <- fread("scrna_all_markers.txt", header = TRUE)
+optimal_resolution <- 0.2
+all_markers <- fread(paste0("scrna_all_markers_optRes", optimal_resolution, ".txt"), header = TRUE)
 annotated_markers <- all_markers %>%
   # First try to match with official gene symbols
   left_join(
@@ -188,21 +189,16 @@ cluster_class <- lapply(1:length(all_cluster_celltype), function(i) {
 Annotate the PCA plot:
 ```{r}
 library(Seurat)
-combinedSeurat <- readRDS("scRNA_after_umap.rds")
+combinedSeurat <- readRDS("scRNA_after_clustering.rds")
 cluster_labels <- sapply(cluster_class, function(x) x[2])
 names(cluster_labels) <- sapply(cluster_class, function(x) x[1])
-
-# We Need to Compute Clusters Again. Didn't save in scRNA.3.marker_genes.r
-combinedSeurat <- FindNeighbors(combinedSeurat, dims = 20)
-combinedSeurat <- FindClusters(combinedSeurat, resolution = 0.5)
-combinedSeurat <- JoinLayers(combinedSeurat)
 combinedSeurat@meta.data$cell_type <- cluster_labels[as.character(combinedSeurat$seurat_clusters)]
 hcc_only <- subset(combinedSeurat, orig.ident == "HCC")
 hccf_only <- subset(combinedSeurat, orig.ident == "HCCF")
 p1 <- DimPlot(hcc_only,
   reduction = "umap",
   group.by = "cell_type",
-  label = TRUE,
+  label = FALSE,
   label.size = 3,
   repel = TRUE
 ) +
@@ -216,7 +212,7 @@ p1 <- DimPlot(hcc_only,
 p2 <- DimPlot(hccf_only,
   reduction = "umap",
   group.by = "cell_type",
-  label = TRUE,
+  label = FALSE,
   label.size = 3,
   repel = TRUE
 ) +
@@ -230,63 +226,4 @@ p2 <- DimPlot(hccf_only,
 
 p1 + p2
 ggsave("6.annotated_plot.png", width = 400, height = 150, units = "mm")
-
-p3 <- DimPlot(combinedSeurat,
-  reduction = "umap",
-  group.by = "seurat_clusters",
-  label = TRUE,
-  label.size = 3,
-  repel = TRUE
-) +
-  theme_minimal() +
-  ggtitle("Seurat Clusters") +
-  theme(
-    legend.position = "right",
-    legend.text = element_text(size = 8),
-    plot.title = element_text(hjust = 0.5)
-  )
-p3
-ggsave("6.seurat_cluster_plot.png", width = 400, height = 150, units = "mm")
 ```
-
-Remove T cytotoxic cells to see cleaner dimplots:
-```{r}
-hcc_only <- subset(combinedSeurat, orig.ident == "HCC" & cell_type != "T cytotoxic cells")
-hccf_only <- subset(combinedSeurat, orig.ident == "HCCF" & cell_type != "T cytotoxic cells")
-p1 <- DimPlot(hcc_only,
-  reduction = "umap",
-  group.by = "cell_type",
-  label = TRUE,
-  label.size = 3,
-  repel = TRUE
-) +
-  theme_minimal() +
-  ggtitle("HCC Cell Types") +
-  theme(
-    legend.position = "right",
-    legend.text = element_text(size = 8),
-    plot.title = element_text(hjust = 0.5)
-  )
-p2 <- DimPlot(hccf_only,
-  reduction = "umap",
-  group.by = "cell_type",
-  label = TRUE,
-  label.size = 3,
-  repel = TRUE
-) +
-  theme_minimal() +
-  ggtitle("HCCF Cell Types") +
-  theme(
-    legend.position = "right",
-    legend.text = element_text(size = 8),
-    plot.title = element_text(hjust = 0.5)
-  )
-
-p1 + p2
-ggsave("6.subsetted_annotated_plot.png", width = 400, height = 150, units = "mm")
-```
-
-Note that maybe the actual annotations are not super crucial. We just need to find similar cells 
-between scRNAseq and scATACseq for comparison. 
-
-Use the same annotation files for both????
