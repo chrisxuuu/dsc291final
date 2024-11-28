@@ -17,6 +17,7 @@ library(data.table)
 library(patchwork)
 library(ggplot2)
 DATA_DIR <- "/Users/chris/Desktop/DSC_291/Final_Project_Data"
+FIGURES_DIR <- "/Users/chris/Desktop/DSC_291/final_project/dsc291final/Figures_scRNA"
 setwd(DATA_DIR)
 knitr::opts_knit$set(root.dir = DATA_DIR)
 ```
@@ -225,5 +226,5 @@ p2 <- DimPlot(hccf_only,
   )
 
 p1 + p2
-ggsave("6.annotated_plot.png", width = 400, height = 150, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/6.annotated_plot.png"), width = 400, height = 150, units = "mm")
 ```

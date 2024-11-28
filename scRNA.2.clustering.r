@@ -5,6 +5,7 @@ library(harmony)
 library(data.table)
 library(patchwork)
 DATA_DIR <- "/Users/chris/Desktop/DSC_291/Final_Project_Data"
+FIGURES_DIR <- "/Users/chris/Desktop/DSC_291/final_project/dsc291final/Figures_scRNA"
 PERCENT_MT <- 5
 nFEATURE_RNA <- 500
 nCOUNT_RNA.min <- 1000
@@ -25,7 +26,7 @@ fscatter <- FeatureScatter(combinedSeurat,
   feature2 = "nFeature_RNA"
 )
 violin / fscatter
-ggsave("1.QC_plots.png", width = 230, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/1.QC_plots.png"), width = 230, units = "mm")
 
 #### Clustering and Harmony Batch Correction
 combinedSeurat <- NormalizeData(combinedSeurat,
@@ -54,7 +55,7 @@ var_feat_plot <- LabelPoints(
   plot = var_feat_plot, points = top10,
   repel = TRUE, xnudge = 0, ynudge = 0
 )
-ggsave("2.Variable_Features_plot.png", width = 200, height = 150, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/2.Variable_Features_plot.png"), width = 200, height = 150, units = "mm")
 
 # Harmony
 combinedSeurat <- RunHarmony(combinedSeurat, "orig.ident", theta = 3)
@@ -74,13 +75,13 @@ after_pca <- DimPlot(combinedSeurat,
   ggtitle("After Harmony") +
   theme_minimal()
 pca_plots <- before_pca + after_pca
-ggsave("3.PCA_plots_harmony.png", width = 400, height = 150, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/3.PCA_plots_harmony.png"), width = 400, height = 150, units = "mm")
 # There might not be batch effect. Tested theta = 3 for stronger correction.
 # Elbow Plot
 elbow_plot <- ElbowPlot(combinedSeurat)
-ggsave("4.Elbow_plot.png", width = 200, height = 150, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/4.Elbow_plot.png"), width = 200, height = 150, units = "mm")
 # UMAP
 combinedSeurat <- RunUMAP(combinedSeurat, dims = 1:20, reduction = "harmony")
 DimPlot(combinedSeurat, reduction = "umap", split.by = "orig.ident")
-ggsave("5.UMAP_plot.png", width = 400, height = 150, units = "mm")
+ggsave(paste0(FIGURES_DIR, "/5.UMAP_plot.png"), width = 400, height = 150, units = "mm")
 saveRDS(combinedSeurat, file = "scRNA_after_umap.rds")
