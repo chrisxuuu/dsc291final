@@ -19,24 +19,13 @@ meta_barcodes <- meta_barcodes[2:length(meta_barcodes)]
 colnames(counts) <- meta_barcodes
 writeLines(meta_barcodes, "valid_barcodes.txt")
 
-# We need to get the granges from the fragments.
-# Filter the barcodes we need in the fragment file.
-system("zcat < ./scATAC_data/GSE227265_fragments_AllSamples.tsv.gz | \
-  awk 'NR==FNR {barcodes[$1]=1; next}
-       $4 in barcodes' \
-  valid_barcodes.txt - | \
-  gzip > ./scATAC_data/GSE227265_fragments_AllSamples.filtered.tsv.gz")
-system("zcat < ./scATAC_data/GSE227265_fragments_AllSamples.filtered.tsv.gz | wc -l")
-system("rm ./scATAC_data/valid_barcodes.txt")
-fragments <- fread("./scATAC_data/GSE227265_fragments_AllSamples.filtered.tsv.gz")
-
-rownames(counts) <-
-  chrom_assay <- CreateChromatinAssay(
-    counts = counts,
-    fragments = "./scATAC_data/GSE227265_fragments_AllSamples.tsv.gz",
-    min.cells = 10,
-    min.features = 200
-  )
+rownames(counts) <- meta_barcodes
+chrom_assay <- CreateChromatinAssay(
+  counts = counts,
+  fragments = "./scATAC_data/GSE227265_fragments_AllSamples.tsv.gz",
+  min.cells = 10,
+  min.features = 200
+)
 
 # Create Seurat object
 atac_seurat <- CreateSeuratObject(
