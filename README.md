@@ -1,7 +1,7 @@
 # DSC 291 Final Project
 Hanchang Cai, Chris Xu
 
-Edit: Nov. 30, 2024
+Edit: Dec. 1, 2024
 
 ## Proposal
 Integrated analysis of scRNA-seq and scATAC-seq data for HCC patients. The overlaps of Differentially Accessible Regions (DARs) and Differentially Expressed Genes (DEGs) will further extend the interpretations from traditional scRNA-seq DEGs by adding 
@@ -15,9 +15,9 @@ We hypothesize that the DARs from scATAC-seq and DEGs from scRNA-seq will have o
 #### Data:
 scRNA-seq: GSE156625 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE156625)
 
-scATAC-seq: ~~GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227265)~~ 
+scATAC-seq: GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227265)
 
-GSE188289 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE188289)
+~~GSE188289 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE188289)~~
 
 #### Methods:
 * scRNA-Seq Processing:
@@ -29,6 +29,7 @@ GSE188289 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE188289)
   * Find DEG's between fetal and primary tumor.
 * scATAC-seq Processing:
   * Signac Package.
+  * MACS2 to call peaks in fragments.
   * QC using strength of the nucleosome signal per cell, TSS enrichment.
   * Cell-type clustering UMAP, annotations.
   * ~~Select the cell-types matching the selection from scRNA-seq Processing.~~
