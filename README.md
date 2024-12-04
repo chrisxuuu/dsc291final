@@ -1,7 +1,7 @@
 # DSC 291 Final Project
 Hanchang Cai, Chris Xu
 
-Edit: Dec. 1, 2024
+Edit: Dec. 3, 2024
 
 ## Proposal
 Integrated analysis of scRNA-seq and scATAC-seq data for HCC patients. The overlaps of Differentially Accessible Regions (DARs) and Differentially Expressed Genes (DEGs) will further extend the interpretations from traditional scRNA-seq DEGs by adding 
@@ -17,8 +17,6 @@ scRNA-seq: GSE156625 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE1566
 
 scATAC-seq: GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227265)
 
-~~GSE188289 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE188289)~~
-
 #### Methods:
 * scRNA-Seq Processing:
   * Seurat Package.
@@ -32,7 +30,6 @@ scATAC-seq: GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227
   * MACS2 to call peaks in fragments.
   * QC using strength of the nucleosome signal per cell, TSS enrichment.
   * Cell-type clustering UMAP, annotations.
-  * ~~Select the cell-types matching the selection from scRNA-seq Processing.~~
   * We will find anchor points between scRNA-seq and scATAC-seq using transcriptional activity.
     * Find transcriptional activity of each gene in the scATAC-seq dataset using GeneActivity()
     * This generates a score for each gene's activity.
@@ -43,7 +40,6 @@ scATAC-seq: GSE227265 (https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE227
         * Note: The "size" of each neighbourhood is controlled by max.features parameter.
       4. The rest of the anchors are assigned a score. Network map using the anchor and the cells.
   * Transfer cell-type annotations from scRNA-seq to scATAC-seq using anchors.
-  * Call the peaks, then link peaks to gene.
-* ~~Correlation analysis of expression matricies for DARs and DEGs from scRNA-Seq and scATAC-seq to identify enhancers.~~
+  * Link peaks to gene.
 
 Repo Link: https://github.com/chrisxuuu/dsc291final
