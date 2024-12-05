@@ -87,13 +87,24 @@ combinedSignac$pct_reads_in_peaks <-
 saveRDS(combinedSignac, "scATAC_QC_Stats.RDS")
 
 # Scatter Plot
+combinedSignac <- readRDS("scATAC_QC_Stats.RDS")
 scatter <- DensityScatter(combinedSignac, x = "nCount_peaks", y = "TSS.enrichment", log_x = TRUE, quantiles = TRUE)
 # From the scatterplot, we set TSS > 3.5 filter.
 combinedSignac$nucleosome_group <- ifelse(combinedSignac$nucleosome_signal > 4, "NS > 4", "NS < 4")
 nucleo_hist <- FragmentHistogram(object = combinedSignac, group.by = "nucleosome_group")
 ggsave(paste0(FIGURES_DIR, "/1.QC_plots.png"),
   plot = scatter + nucleo_hist,
-  height = 230, width = 230 * 2, units = "mm"
+  height = 130, width = 130 * 2, units = "mm"
+)
+violin <- VlnPlot(
+  object = combinedSignac,
+  features = c("nCount_peaks", "TSS.enrichment", "nucleosome_signal", "pct_reads_in_peaks"),
+  pt.size = 0.1,
+  ncol = 4
+)
+ggsave(paste0(FIGURES_DIR, "/2.QC_violin.png"),
+  plot = violin,
+  height = 130, width = 130 * 3, units = "mm"
 )
 # FILTERS: nucleosome_signal < 4
 #          FRIP > 0.15
