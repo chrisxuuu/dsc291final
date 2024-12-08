@@ -227,4 +227,5 @@ p2 <- DimPlot(hccf_only,
 
 p1 + p2
 ggsave(paste0(FIGURES_DIR, "/6.annotated_plot.png"), width = 400, height = 150, units = "mm")
+saveRDS(combinedSeurat, "scRNA_after_annotations.RDS")
 ```
