@@ -99,13 +99,32 @@ ggsave(paste0(FIGURES_DIR, "/1.QC_plots.png"),
 violin <- VlnPlot(
   object = combinedSignac,
   features = c("nCount_peaks", "TSS.enrichment", "nucleosome_signal", "pct_reads_in_peaks"),
+  group.by = "group",
   pt.size = 0.1,
   ncol = 4
 )
 ggsave(paste0(FIGURES_DIR, "/2.QC_violin.png"),
   plot = violin,
-  height = 130, width = 130 * 3, units = "mm"
+  height = 130, width = 130 * 2, units = "mm"
 )
 # FILTERS: nucleosome_signal < 4
 #          FRIP > 0.15
 #          TSS enrichment score > 3.5
+combinedSignac <- subset(
+  x = combinedSignac,
+  subset = nCount_peaks > 1000 & nCount_peaks < 20000 &
+    nucleosome_signal < 4 & nucleosome_signal > 0.5 &
+    TSS.enrichment > 3.5
+)
+
+# Clustering
+combinedSignac <- RunTFIDF(combinedSignac)
+combinedSignac <- FindTopFeatures(combinedSignac, min.cutoff = "q0")
+combinedSignac <- RunSVD(combinedSignac)
+combinedSignac <- RunUMAP(object = combinedSignac, reduction = "lsi", dims = 2:30) # We skip the first dim
+combinedSignac <- FindNeighbors(object = combinedSignac, reduction = "lsi", dims = 2:30)
+combinedSignac <- FindClusters(object = combinedSignac, verbose = FALSE, algorithm = 3)
+dimplot <- DimPlot(object = combinedSignac, label = TRUE) + NoLegend() +
+  ggtitle("LSI Clusters")
+ggsave(paste0(FIGURES_DIR, "/3.Clustering_dimplot.png"), plot = dimplot, width = 200, height = 200, units = "mm")
+saveRDS(combinedSignac, "scATAC_after_lsi.RDS")
