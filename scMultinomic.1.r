@@ -273,8 +273,6 @@ for (i in 1:length(deg_coords)) {
 # Initialize counters
 total_genes <- length(deg_coords)
 genes_with_links <- 0
-
-# Loop through genes and count those with links
 for (i in 1:length(deg_coords)) {
   gene <- deg_coords$gene_name[i]
   gene_coords <- deg_coords[i]
@@ -289,7 +287,6 @@ for (i in 1:length(deg_coords)) {
     genes_with_links <- genes_with_links + 1
   }
 }
-
 # Calculate proportion
 proportion <- genes_with_links / total_genes
 cat(sprintf("Total genes: %d\n", total_genes))
