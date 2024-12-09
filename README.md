@@ -42,33 +42,4 @@ Inspired by: Bai, Y., Deng, X., Chen, D., Han, S., Lin, Z., Li, Z., Tong, W., Li
 
 #### Repo Link: 
 
-https://github.com/chrisxuuu/dsc291finalmodify 1 
-modify 2 
-modify 3 
-modify 4 
-modify 5 
-modify 6 
-modify 7 
-modify 8 
-modify 9 
-modify 10 
-modify 1 
-modify 2 
-modify 3 
-modify 4 
-modify 5 
-modify 6 
-modify 7 
-modify 8 
-modify 9 
-modify 10 
-modify 21 
-modify 22 
-modify 23 
-modify 24 
-modify 25 
-modify 26 
-modify 27 
-modify 28 
-modify 29 
-modify 30 
+https://github.com/chrisxuuu/dsc291final
